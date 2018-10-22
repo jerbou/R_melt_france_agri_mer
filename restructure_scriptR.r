@@ -201,3 +201,52 @@ dim(df2_melt)[1] - dim(df1_melt)[1]
 
 # on save en csv
 write.csv(df2_melt, "histREG_collecte_bio_depuis_2000_restruct.csv")
+
+# on change le type de données
+df2_melt$value <- as.numeric(df2_melt$value)
+ 
+# dfin <- rbind(prod_melt,rend_melt,surf_melt)
+# write.xlsx(dfin, "hist_dep_surface_prod_cult_restruct.xlsx")
+
+length(unique(df1_melt$variable))
+
+# dataviz
+hist(prod_melt$value)
+
+# desactivation de la numérotation sci
+# https://stackoverflow.com/questions/5352099/how-to-disable-scientific-notation
+options(scipen=999)
+
+# on convertit en date
+df2_melt$Date <- as.Date(df2_melt$Date, format="%Y-%m-%d")
+
+
+prod_nat <- ggplot(subset(df2_melt, variable !="TOTAL"), aes(x=Récolte, y=value)) + geom_bar(aes(y=value), stat='identity',fill="#D55E00") + theme(legend.position = "right")
+prod_nat + facet_wrap(.~type_cul,scales = "free") + theme_minimal() + 
+  ggtitle("Série historique de collecte annuelle biologique par récolte jusqu'au 1er septembre 2018 \n Source FranceAgriMer,Unité Système d'information économique - Etat2  biologique de consommation") + theme(plot.title = element_text(lineheight=.8, face="bold", hjust = 0.5))
+# Unité : tonnes
+# Chiffres provisoires arrêtés le 21/09/2018
+# Juillet comprend la récolte précoce du mois de juin
+# SC secret statistique
+# Y compris biologique 2ème année de conversion
+# Source FranceAgriMer,Unité Système d'information économique - Etat2  biologique de consommation
+
+
+# === Avoine ==== 
+ggplot(subset(df2_melt,type_cul == 'Avoine' & variable !="TOTAL") , aes(x=Date, y=value, colour=variable)) + geom_line(aes(x=Date, y=value, colour=variable), size=1)  + theme_minimal()  +
+  gghighlight(variable == "Bourgogne\nFranche\nComté") +
+#  scale_x_date(date_labels = "%b %Y")
+  scale_x_date(date_breaks = "6 month", date_labels = "%b %Y") + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+# === Avoine les departements le max de surface ====
+ggplot(subset(df2_melt,type_cul == 'Avoine' & variable !="TOTAL") , aes(x=Date, y=value, colour=variable)) + geom_line(aes(x=Date, y=value, colour=variable), size=1)  + theme_minimal() + 
+  gghighlight(predicate = max(value), max_highlight = 2) +
+  scale_x_date(date_breaks = "6 month", date_labels = "%b %Y") + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+# essayons le wrap sur toutes les cultures
+ggplot(subset(df2_melt, variable !="TOTAL") , aes(x=Date, y=value, colour=variable)) + geom_line(aes(x=Date, y=value, colour=variable), size=1)  + theme_minimal() + 
+  # gghighlight(predicate = max(value), max_highlight = 2) 
+  facet_wrap(.~type_cul,scales = "free") + theme_minimal() +
+  scale_x_date(date_breaks = "18 month", date_labels = "%b %Y") + theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  theme(legend.position="bottom")
+
